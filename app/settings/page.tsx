@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Save, CheckCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 type Settings = {
@@ -14,106 +15,121 @@ type Settings = {
   bank_info: string;
 };
 
-const defaultSettings: Settings = {
-  company_name: '',
-  postal_code: '',
-  address: '',
-  phone: '',
-  email: '',
-  invoice_number: '',
-  bank_info: '',
+const EMPTY: Settings = {
+  company_name: '', postal_code: '', address: '',
+  phone: '', email: '', invoice_number: '', bank_info: '',
 };
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [settings, setSettings] = useState<Settings>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    supabase
-      .from('company_settings')
-      .select('*')
-      .single()
-      .then(({ data }) => {
-        if (data) setSettings(data as Settings);
-      });
+    supabase.from('company_settings').select('*').single().then(({ data }) => {
+      if (data) setSettings(data as Settings);
+    });
   }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const set = (key: keyof Settings) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setSettings((prev) => ({ ...prev, [key]: e.target.value }));
+
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('company_settings')
-        .upsert({ ...settings });
-      if (error) throw error;
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSaving(false);
+    const { id, ...rest } = settings;
+    if (id) {
+      await supabase.from('company_settings').update(rest).eq('id', id);
+    } else {
+      const { data } = await supabase.from('company_settings').insert(rest).select().single();
+      if (data) setSettings(data as Settings);
     }
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
   }
 
-  function handleChange(field: keyof Settings, value: string) {
-    setSettings((prev) => ({ ...prev, [field]: value }));
-  }
-
-  const fields: { key: keyof Settings; label: string; placeholder?: string; multiline?: boolean }[] = [
-    { key: 'company_name', label: '会社名', placeholder: '株式会社〇〇' },
-    { key: 'postal_code', label: '郵便番号', placeholder: '000-0000' },
-    { key: 'address', label: '住所', placeholder: '東京都〇〇区...' },
-    { key: 'phone', label: '電話番号', placeholder: '03-0000-0000' },
-    { key: 'email', label: 'メール', placeholder: 'info@example.com' },
-    { key: 'invoice_number', label: 'インボイス登録番号', placeholder: 'T0000000000000' },
-    { key: 'bank_info', label: '振込先口座情報', placeholder: '〇〇銀行 〇〇支店 普通 0000000', multiline: true },
-  ];
+  const inputClass = 'w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400';
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">会社設定</h1>
-      <p className="text-sm text-gray-500 mb-6">
-        入力した情報は見積書・請求書・契約書に自動反映されます
-      </p>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">設定</h1>
+        <p className="text-sm text-gray-500 mt-1">入力した情報は見積書・請求書・契約書に自動反映されます</p>
+      </div>
 
-      {saved && (
-        <div className="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-          設定を保存しました
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-5">
-        {fields.map(({ key, label, placeholder, multiline }) => (
-          <div key={key}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-            {multiline ? (
-              <textarea
-                value={(settings[key] as string) || ''}
-                onChange={(e) => handleChange(key, e.target.value)}
-                placeholder={placeholder}
-                rows={3}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            ) : (
-              <input
-                type="text"
-                value={(settings[key] as string) || ''}
-                onChange={(e) => handleChange(key, e.target.value)}
-                placeholder={placeholder}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            )}
+      <form onSubmit={handleSave}>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">自社情報</h2>
           </div>
-        ))}
+          <div className="p-6 space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">会社名</label>
+              <input type="text" value={settings.company_name} onChange={set('company_name')} placeholder="株式会社〇〇" className={inputClass} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">郵便番号</label>
+                <input type="text" value={settings.postal_code} onChange={set('postal_code')} placeholder="000-0000" className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">電話番号</label>
+                <input type="text" value={settings.phone} onChange={set('phone')} placeholder="03-0000-0000" className={inputClass} />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">住所</label>
+              <input type="text" value={settings.address} onChange={set('address')} placeholder="東京都〇〇区〇〇1-2-3" className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">メールアドレス</label>
+              <input type="email" value={settings.email} onChange={set('email')} placeholder="info@company.com" className={inputClass} />
+            </div>
+          </div>
+        </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
-        >
-          {saving ? '保存中...' : '設定を保存'}
-        </button>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-5">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">請求・税務情報</h2>
+          </div>
+          <div className="p-6 space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                インボイス登録番号
+                <span className="ml-2 text-xs font-normal text-gray-400">（T + 13桁）</span>
+              </label>
+              <input type="text" value={settings.invoice_number} onChange={set('invoice_number')} placeholder="T1234567890123" className={`${inputClass} font-mono`} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">振込先口座情報</label>
+              <textarea
+                value={settings.bank_info}
+                onChange={(e) => setSettings((prev) => ({ ...prev, bank_info: e.target.value }))}
+                placeholder={"〇〇銀行 〇〇支店\n普通 1234567\n口座名義：カ）〇〇"}
+                rows={3}
+                className={`${inputClass} resize-none`}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center gap-4">
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? '保存中...' : '保存する'}
+          </button>
+          {saved && (
+            <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+              <CheckCircle className="w-4 h-4" />
+              保存しました
+            </span>
+          )}
+        </div>
       </form>
     </div>
   );
