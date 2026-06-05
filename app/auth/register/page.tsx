@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Building2, Users } from 'lucide-react';
@@ -12,6 +12,12 @@ type Mode = 'admin' | 'invite';
 export default function RegisterPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('admin');
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) router.replace('/dashboard');
+    });
+  }, [router]);
   const [inviteCode, setInviteCode] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [displayName, setDisplayName] = useState('');

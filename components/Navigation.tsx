@@ -13,7 +13,7 @@ const bottomItems = [
 
 export default function Navigation() {
   const pathname = usePathname();
-  if (pathname.startsWith('/auth')) return null;
+  if (pathname === '/' || pathname.startsWith('/auth')) return null;
 
   const mainItems = [...baseItems, ...appConfig.navItems];
   const allItems = [...mainItems, ...bottomItems];
