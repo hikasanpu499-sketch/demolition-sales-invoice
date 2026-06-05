@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Navigation from '@/components/Navigation';
 import AuthGuard from '@/components/AuthGuard';
+import PageWrapper from '@/components/PageWrapper';
 import { appConfig } from '@/lib/app-config';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -18,9 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} bg-gray-50`}>
         <AuthGuard>
           <Navigation />
-          <main className="md:ml-64 min-h-screen pt-14 md:pt-0 pb-20 md:pb-0">
-            {children}
-          </main>
+          <PageWrapper>{children}</PageWrapper>
         </AuthGuard>
       </body>
     </html>
