@@ -9,7 +9,6 @@ const baseItems = [{ label: 'ダッシュボード', path: '/dashboard', icon: '
 const bottomItems = [
   { label: '設定', path: '/settings', icon: 'Settings' },
   { label: '使い方', path: '/how-to-use', icon: 'HelpCircle' },
-  { label: 'ユーザー', path: '/users', icon: 'Users2' },
 ];
 
 export default function Navigation() {
