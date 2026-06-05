@@ -1,6 +1,6 @@
 "use client";
 
-import type { Invoice } from "@/app/page";
+import type { Invoice } from "@/app/invoices/page";
 
 type Props = {
   invoices: Invoice[];

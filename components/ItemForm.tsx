@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
-import type { Invoice } from "@/app/page";
+import type { Invoice } from "@/app/invoices/page";
 
 type Props = {
   editing: Invoice | null;
