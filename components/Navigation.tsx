@@ -20,7 +20,7 @@ export default function Navigation() {
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
-  const NavLink = ({ item, compact = false }: { item: typeof allItems[0]; compact?: boolean }) => {
+  const NavLink = ({ item }: { item: typeof allItems[0] }) => {
     const Icon = (Icons as Record<string, any>)[item.icon] ?? Icons.Circle;
     const active = isActive(item.path);
     return (
@@ -33,13 +33,43 @@ export default function Navigation() {
         }`}
       >
         <Icon className="w-[18px] h-[18px] flex-shrink-0" />
-        {!compact && <span className="truncate">{item.label}</span>}
+        <span className="truncate">{item.label}</span>
       </Link>
     );
   };
 
   return (
     <>
+      {/* Mobile Top Bar */}
+      <header className="md:hidden fixed top-0 inset-x-0 z-40 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 shadow-sm">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
+          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow">
+            {appConfig.appName.charAt(0)}
+          </div>
+          <span className="font-semibold text-gray-900 text-sm">{appConfig.appName}</span>
+        </Link>
+        <div className="flex items-center gap-1">
+          <Link
+            href="/settings"
+            className={`w-9 h-9 flex items-center justify-center rounded-xl transition-colors ${
+              isActive('/settings') ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-100'
+            }`}
+            aria-label="設定"
+          >
+            <Icons.Settings className="w-5 h-5" />
+          </Link>
+          <Link
+            href="/how-to-use"
+            className={`w-9 h-9 flex items-center justify-center rounded-xl transition-colors ${
+              isActive('/how-to-use') ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-100'
+            }`}
+            aria-label="使い方"
+          >
+            <Icons.HelpCircle className="w-5 h-5" />
+          </Link>
+        </div>
+      </header>
+
       {/* PC Sidebar */}
       <aside className="hidden md:flex fixed inset-y-0 left-0 w-60 flex-col bg-slate-900 z-40">
         {/* Logo */}
@@ -63,8 +93,8 @@ export default function Navigation() {
 
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200 safe-area-bottom">
-        <div className={`grid`} style={{ gridTemplateColumns: `repeat(${Math.min(allItems.length, 5)}, 1fr)` }}>
-          {allItems.slice(0, 5).map((item) => {
+        <div className="grid" style={{ gridTemplateColumns: `repeat(${Math.min(mainItems.length, 5)}, 1fr)` }}>
+          {mainItems.slice(0, 5).map((item) => {
             const Icon = (Icons as Record<string, any>)[item.icon] ?? Icons.Circle;
             const active = isActive(item.path);
             return (
